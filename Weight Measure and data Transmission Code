@@ -1,0 +1,83 @@
+#include<LiquidCrystal.h>
+#include <Wire.h>
+#include "HX711.h"
+
+#define calibration_factor -7050.0 //This value is obtained using the SparkFun_HX711_Calibration sketch
+
+#define DOUT  3
+#define CLK  2
+
+HX711 scale;
+
+int cm;
+
+
+int tim = 250;  //the value of delay time
+
+
+
+LiquidCrystal lcd(4, 6, 10, 11, 12, 13);
+
+
+
+void setup(){
+
+  lcd.begin(16, 2);  // set up the LCD's number of columns and rows: 
+
+ lcd.print("Measuring height");
+ lcd.setCursor(0,1);
+ lcd.print("And Weight");
+ delay(2000);
+ lcd.clear();
+ lcd.print(" Initialization");
+ delay(2000);
+
+  Serial.begin(9600);
+  Serial.println("HX711 scale demo");
+
+  scale.begin(DOUT, CLK);
+  scale.set_scale(calibration_factor); //This value is obtained by using the SparkFun_HX711_Calibration sketch
+  scale.tare(); //Assuming there is no weight on the scale at start up, reset the scale to 0
+
+  Serial.println("Readings:");
+
+
+   Wire.begin(8);                // join i2c bus with address #8
+  Wire.onReceive(receiveEvent); // register event
+  Serial.begin(9600);           // start serial for output
+}
+
+
+void loop() {
+  
+  while(Wire.available()){
+    cm = Wire.read();    // receive byte as an integer
+  Serial.println(cm);   
+
+  }
+
+  Serial.print("Reading: ");
+  Serial.print(scale.get_units(), 1); //scale.get_units() returns a float
+  Serial.print(" lbs"); //You can change this to kg but you'll need to refactor the calibration_factor
+  Serial.println();
+
+
+  
+ lcd.clear();
+ lcd.print("Height:");
+ lcd.print(cm);
+ lcd.print("cm ");
+
+ lcd.setCursor(0,1);
+ lcd.print("Weight:");
+ lcd.print(scale.get_units(), 1);
+ lcd.print("lbs");
+ delay(1000);
+
+    }
+
+
+void receiveEvent(int howMany) {
+ 
+
+}
